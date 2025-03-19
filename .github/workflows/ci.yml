@@ -1,0 +1,81 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build React App
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.14.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the app
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: build/
+
+  test:
+    name: Run Jest Tests
+    runs-on: ubuntu-22.04
+    needs: build # Tests starten nur, wenn Build erfolgreich war
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.14.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Jest tests
+        run: npm test # Bricht die Pipeline bei Test-Fehlschlägen ab
+
+  lint:
+    name: Run ESLint
+    runs-on: ubuntu-22.04
+    needs: build # Linting startet nur, wenn Build erfolgreich war
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.14.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint # Bricht die Pipeline bei Lint-Fehlschlägen ab
+
+  deploy:
+    name: Simulate Deployment
+    runs-on: ubuntu-22.04
+    needs: [test, lint] # Deployment läuft nur, wenn Tests & Linting erfolgreich sind
+
+    steps:
+      - name: Simulate Deployment
+        run: echo "Deployment was successful"
